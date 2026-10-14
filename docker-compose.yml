@@ -1,0 +1,72 @@
+services:
+  # --- PostgreSQL Database ---
+  db:
+    image: postgres:16-alpine
+    container_name: hangar-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hangar_user
+      POSTGRES_PASSWORD: hangar_pass
+      POSTGRES_DB: hangar_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - hangar-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hangar_user -d hangar_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Security: read-only root filesystem when possible
+    tmpfs:
+      - /tmp
+      - /run
+
+  # --- Backend API ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hangar-backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      DB_USER: hangar_user
+      DB_PASSWORD: hangar_pass
+      DB_NAME: hangar_db
+      DB_HOST: db
+      DB_PORT: 5432
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+  # Security: do not run as root (already set in Dockerfile but enforcing here)
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      
+  # --- Frontend (Nginx + React) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hangar-frontend
+    restart: unless-stopped
+    environment:
+      PORT: 80
+      API_URL: http://backend:5000
+    ports:
+      - "80:8080"
+    depends_on:
+      - backend
+  # Security: do not run as root (already set in Dockerfile but enforcing here)
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  hangar-db-data:
+    driver: local
+
