@@ -1,0 +1,43 @@
+# ---- NetworkPolicy: DB only accepts traffic from Backend ----
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hangar-db-allow-backend-only
+  namespace: hangar
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hangar-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: hangar-backend
+      ports:
+        - port: 5432
+          protocol: TCP
+
+---
+# ---- NetworkPolicy: Backend accepts traffic from Frontend only ----
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hangar-backend-allow-frontend-only
+  namespace: hangar
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hangar-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: hangar-frontend
+      ports:
+        - port: 5000
+          protocol: TCP
+          
