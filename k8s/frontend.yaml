@@ -29,7 +29,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: frontend
-          image: ghcr.io/moazzam75/Hangar/hangar-frontend:04f759a
+          image: ghcr.io/moazzam75/Hangar/hangar-frontend:04623b2
           ports:
             - containerPort: 8080
               protocol: TCP
