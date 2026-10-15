@@ -40,7 +40,7 @@ spec:
               echo "DB is ready!"
       containers:
         - name: backend
-          image: ghcr.io/moazzam75/Hangar/hangar-backend:2e73967
+          image: ghcr.io/moazzam75/Hangar/hangar-backend:04f759a
           ports:
             - containerPort: 5000
               protocol: TCP
